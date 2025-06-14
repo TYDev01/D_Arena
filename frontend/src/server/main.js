@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 // Removed ALL MongoDB/bcrypt/session-related code
 app.post("/login", (req, res) => {
   const { username } = req.body;
-  console.log(username)
+  console.log("username:", username)
   
   if (!username || username.trim() === "") {
     return res.status(400).send("Username required");
@@ -52,7 +52,6 @@ export const requireAuth = (req, res, next) => {
 
 
 app.post("/logout", (req, res) => {
-  req.session = null;
   console.log("User logged out");
   res.status(401).send("Logged out");
 });

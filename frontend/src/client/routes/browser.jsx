@@ -12,9 +12,9 @@ import './modal.css';
 import { joinGameCon, createGameCon, declareDrawCon, triggerTimeoutRefundCon } from "../../contract/interact.js";
 
 export default function Browser() {
+    console.log('E enter!')
     const socket = useLoaderData().io;
-    const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get('user') || '';
+    const [username, setUsername] = useState("");
     const navigate = useNavigate();
 
     const [account, setAccount] = useState(null);
@@ -136,8 +136,15 @@ export default function Browser() {
     }
 
     useEffect(() => {
-        if (!username) return navigate('/');
-    }, []);
+        const storedUsername = localStorage.getItem("username");
+
+        if (!storedUsername) {
+            // If no username, redirect to login
+            navigate("/");
+        } else {
+            setUsername(storedUsername);
+        }
+    }, [navigate]);
 
     // useEffect(() => {
     //     loadGameCode(gameCode)

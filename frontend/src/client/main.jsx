@@ -8,7 +8,8 @@ import {
   redirect,
 } from "react-router-dom";
 
-import { LoginPage, login } from "./routes/login"
+import { LoginPage } from "./routes/login"
+import { loginAction } from "./routes/loginAction";
 import ErrorPage from "./error-page";
 import Browser from "./routes/browser";
 import App from "./App";
@@ -19,7 +20,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <LoginPage />,
     errorElement: <ErrorPage />,
-    action: login,
+    action: loginAction,
     loader: async () => {
       // const response = await fetch("/data", {
       //   method: "GET",
@@ -35,8 +36,7 @@ const router = createBrowserRouter([
     element: <Browser />,
     loader: async () => {
       console.log("Fetching data");
-      const urlParams = new URLSearchParams(window.location.search);
-      const username = urlParams.get('user') || '';
+      const username = localStorage.getItem("username");
       if(username === ''){
         return redirect('/')
       }

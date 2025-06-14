@@ -10,6 +10,8 @@ export default function LogoutButton({ socket }) {
         else console.log("No socket provided!");
 
         await fetch("/logout", { method: "POST" });
+
+        localStorage.removeItem("username");
         navigate("/");
     }
 
