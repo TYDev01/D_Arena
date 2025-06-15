@@ -10,8 +10,10 @@ import { Token, Board } from "../shared/GameModel.js";
 import { joinGameCon, createGameCon, declareDrawCon, triggerTimeoutRefundCon, declareWinnerCon } from "../contract/interact.js";
 
 function joinGame(gameCode, socket, username, games, io) {
+  if(!(username || gameCode) || username.trim() === '' ) return socket.emit("gameJoinError", gameCode, "Incomplete input");
+  
   socket.username = username;
-  console.log('Joining Game:',gameCode)
+  console.log('Joining Game:',gameCode, 'username:',username);
 
   if (!games[gameCode]) {
     console.log("Game does not exist", gameCode);
@@ -21,9 +23,9 @@ function joinGame(gameCode, socket, username, games, io) {
   // if less than two players, join game
   if (games[gameCode].players.length < games[gameCode].maxPlayers) {
     console.log(
-      "player0",
-      games[gameCode].players[0],
-      " joining game ",
+      "player0:",
+      username,
+      " joining game:",
       gameCode
     );
     if (games[gameCode].players[0] === username) {
@@ -32,6 +34,7 @@ function joinGame(gameCode, socket, username, games, io) {
       return;
     }
     games[gameCode].players.push(username);
+    // console.log(games[gameCode].players)
     socket.gameCode = gameCode; // legal?
 
     // tell user they successfully joined
@@ -88,7 +91,6 @@ export default function ioHandler(io) {
         return;
       }
       
-      socket.emit('sendGameData', gameCode,stakeAmt);
       // Create the game
       games[gameCode] = {
         players: [],
@@ -97,6 +99,9 @@ export default function ioHandler(io) {
         board: new Board(),
         sockets: [],
       };
+
+      
+      socket.emit('sendGameData', gameCode,stakeAmt);
       // joinGame(gameCode, socket, username, games, io);
     });
 
@@ -110,6 +115,7 @@ export default function ioHandler(io) {
     });
 
     socket.on("joinGame", (gameCode, username, stakeAmt, addr) => {
+      if(!(gameCode || username || stakeAmt || addr)) return console.log('Send complete data')
       console.log("got join game request", username, gameCode);
       if (gameCode == 69420 && !games[gameCode]) {
         games[gameCode] = {
@@ -124,6 +130,7 @@ export default function ioHandler(io) {
     });
 
     socket.on('getOpp', (gameCode, player) => {
+      console.log(gameCode, player)
       const players = games[gameCode].players;
       const opp = players[0];
       console.log('player:', player, 'opp:', opp);

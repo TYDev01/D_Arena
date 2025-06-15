@@ -22,12 +22,6 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
     action: loginAction,
     loader: async () => {
-      // const response = await fetch("/data", {
-      //   method: "GET",
-      // });
-      // if (response.ok) {
-      //   return redirect("/browser");
-      // }
       return null;
     }
   },
@@ -35,22 +29,11 @@ const router = createBrowserRouter([
     path: "/browser",
     element: <Browser />,
     loader: async () => {
-      console.log("Fetching data");
-      const username = localStorage.getItem("username");
-      if(username === ''){
+      // console.log("Fetching data");
+      const storedUsername = localStorage.getItem("username");
+      if(storedUsername === ''){
         return redirect('/')
       }
-
-      // const response = await fetch("/data", {
-      //   method: "GET",
-      // });
-      // if (response.status !== 200) {
-      //   console.log("Not authenticated");
-      //   return redirect("/");
-      // } else {
-      //   // Set up socket and also give the leaderboard data
-      //   return { io: io(), data: await response.json() };
-      // }
       return {io: io()};
     },
   },

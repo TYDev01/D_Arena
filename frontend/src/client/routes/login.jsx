@@ -13,8 +13,7 @@ export function LoginPage() {
     <>
       <div className="form-div">
         <h1>D_Arena</h1>
-        <Form method="post">
-          <br />
+        <Form method="post" className="form-row">
           <input 
               type="text" 
               name="username" 

@@ -18,7 +18,7 @@ export async function loginAction({ request }) {
 
   if (response.ok) {
     localStorage.setItem('username', username);
-    console.log('Local ooo');
+    
     return redirect('/browser');
   } else {
     return await response.text();

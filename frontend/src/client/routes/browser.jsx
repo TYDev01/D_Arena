@@ -5,23 +5,23 @@ import LogoutButton from "../LogoutButton";
 import Game from "./game";
 import GameBoard from "./gameboard";
 import Navbar from '../Navbar';
+import IosSpinner from '../assets/widgets/IosSpinner'
 import Leaderboard from "./leaderboard";
 import { Board, Token } from "../../shared/GameModel";
 import './modal.css';
 
+import socket from '../../shared/socket'
+
 import { joinGameCon, createGameCon, declareDrawCon, triggerTimeoutRefundCon } from "../../contract/interact.js";
 
 export default function Browser() {
-    console.log('E enter!')
-    const socket = useLoaderData().io;
-    const [username, setUsername] = useState("");
+    // const socket = useLoaderData().io;
+    const [username, setUsername] = useState(() => localStorage.getItem('username'));
     const navigate = useNavigate();
 
     const [account, setAccount] = useState(null);
 
     const [gameCode, setGameCode] = useState("");
-
-    const [stakeAmt, setStakeAmt] = useState(null);
     const [gameStarted, setGameStarted] = useState(false);
     const [gameJoined, setGameJoined] = useState(false);
     const [gameOverReason, setGameOverReason] = useState("");
@@ -29,6 +29,7 @@ export default function Browser() {
     const [player, setPlayer] = useState("");
     const [selected, setSelected] = useState({});
     const [modalState, setModalState] = useState(false);
+    const [btnLoading, setBtnLoading] = useState(false);
     const [modalContent, setModalContent] = useState({
         opponent: '',
         gameCode: '',
@@ -45,6 +46,7 @@ export default function Browser() {
         const { gameCode, stakeAmt } = modalContent;
         // console.log(gameCode, stakeAmt)
 
+        setBtnLoading(true);
         modalContent.action(gameCode, stakeAmt);
     };
 
@@ -58,29 +60,31 @@ export default function Browser() {
         });
     };
 
-
     const handleJoinGame = () => {
-        console.log(modalContent.gameCode)
-        // setGameCode('');
+        // console.log("gamCode:", modalContent.gameCode, username)
         socket.emit('verifyGameCode', modalContent.gameCode);
     };
 
     const handleJoinAction = (code, stake) => {
-        // console.log(code, stake);
         gameJoin(code, stake);
     };
 
     const gameJoin = async (code, stake) => {
-        // console.log(code, stake);
+        if (!stake || stake <= 0 || isNaN(stake)) return console.error("Enter valid stake to proceed");
+        // console.log("Join:", code, stake, username);
         try {
-            const response = await joinGameCon(code, stake);
+            // const response = await joinGameCon(code, stake);
 
-            if (!response) return alert('Error while processing')
+            // if (!response) return alert('Error while processing')
 
             socket.emit("joinGame", code, username, stake, account);
         } catch (err) {
             console.error(err)
+        } finally {
+            setBtnLoading(false)
+            setModalState(false)
         }
+        
     };
 
     const openModal = ({ opponent, gameCode, action, buttonText }) => {
@@ -95,75 +99,68 @@ export default function Browser() {
     };
 
     const createGameEmit = (code, stake) => {
-        if (!stake) return console.error("Enter stake to proceed")
+        if (!stake || stake <= 0 || isNaN(stake)) return console.error("Enter valid stake to proceed");
+        // console.log('createGameEmit:', stake, username)
         socket.emit("createGame", username, stake);
     }
 
     const createGame = async (code, stake) => {
-        // console.log(code, stake)
+        // console.log('createGame:', code, stake, username)
         try {
-            const response = await createGameCon(code, stake);
+            // const response = await createGameCon(code, stake);
 
-            if (!response) return console.error('Error while processing')
+            // if (!response) return console.error('Error while processing')
 
-            socket.emit("joinGame", code, username, stake);
-
-
-            setModalState(false);
-            clearModalContent();
+            socket.emit("joinGame", code, username, stake, account);
 
             // return { ok: true };
         } catch (err) {
             console.error(err)
+        } finally {
+            setModalState(false);
+            clearModalContent();
         }
 
     };
 
     const backToBrowser = (e) => {
         e.preventDefault();
-        console.log("Back to browser!");
+        
         setGameStarted(false);
         setGameOverReason("");
         setGameJoined(false);
         setGameCode("");
-        // Get it to refresh the data
+        
         navigate("/browser");
     }
 
-    const loadGameCode = (code) => {
-        setGameCode(code);
-        setModalContent(prev => ({ ...prev, gameCode: code }))
-    }
-
-    useEffect(() => {
-        const storedUsername = localStorage.getItem("username");
-
-        if (!storedUsername) {
-            // If no username, redirect to login
-            navigate("/");
-        } else {
-            setUsername(storedUsername);
-        }
-    }, [navigate]);
-
     // useEffect(() => {
-    //     loadGameCode(gameCode)
-    // }, [gameCode])
+    //     const storedUsername = localStorage.getItem("username");
+
+    //     if (!storedUsername) {
+    //         // If no username, redirect to login
+    //         navigate("/");
+    //         setAccount('');
+    //     } else {
+    //         // console.log('Stored Username:', sredUsername);
+    //         setUsername(storedUsername);
+    //     }
+    // }, [navigate]);
 
     useEffect(() => {
         socket.on("gameJoined", (gameCode) => {
-            // Joined the game!
             setGameJoined(true);
             setGameCode(gameCode);
             setBoard(new Board(gameCode));
         });
 
         socket.on('sendGameData', (code, stake) => {
+            // console.log('recievedGameData:', code, stake, username);
             createGame(code, stake);
         })
 
         socket.on("gameStarted", (player) => {
-            console.log("Game started! I am player ", player);
+            // console.log("Game started! I am player ", player);
             setPlayer(player);
             setGameStarted(true);
         })
@@ -173,6 +170,7 @@ export default function Browser() {
 
 
         socket.on('validGameCode', (valCode, status) => {
+            // console.log('validGameCode:', valCode, 'status:', status);
             if (!status) return alert('Invalid Game code!');
 
             socket.emit('getOpp', valCode, username);
@@ -230,6 +228,7 @@ export default function Browser() {
         });
 
         return () => {
+            socket.off('board');
             socket.off('sendGameData')
             socket.off('opponent');
             socket.off('validGameCode');
@@ -262,7 +261,7 @@ export default function Browser() {
 
                                     openModal({
                                         opponent: '',
-                                        gameCode: 'null',
+                                        gameCode: '',
                                         action: createGameEmit,
                                         buttonText: 'Create Game'
                                     });
@@ -317,8 +316,11 @@ export default function Browser() {
                                 <button className='btn-blue' onClick={(e) => {
                                     e.preventDefault();
                                     handleSubmit();
-                                }} >
-                                    {modalContent.buttonText}
+                                }}
+                                disabled={btnLoading}
+
+                                >
+                                    {btnLoading && <IosSpinner /> } {modalContent.buttonText}
                                 </button>
                             </div>
                         </div>
