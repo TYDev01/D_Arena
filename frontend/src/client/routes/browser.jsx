@@ -73,9 +73,9 @@ export default function Browser() {
         if (!stake || stake <= 0 || isNaN(stake)) return console.error("Enter valid stake to proceed");
         // console.log("Join:", code, stake, username);
         try {
-            // const response = await joinGameCon(code, stake);
+            const response = await joinGameCon(code, stake);
 
-            // if (!response) return alert('Error while processing')
+            if (!response) return alert('Error while processing')
 
             socket.emit("joinGame", code, username, stake, account);
         } catch (err) {
