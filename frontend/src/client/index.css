@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
+/* @tailwind preflight; */
+/* @tailwind components; */
 @tailwind utilities;
 
-@layer base {
+layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -61,6 +61,14 @@
   }
 }
 
+/* @layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+} */
 
 /* Modern animations */
 @keyframes fadeInUp {

@@ -37,7 +37,7 @@ export function Logo({ size = "lg" }) {
       </div>
 
       {/* Logo Text */}
-      <div className={`${textSizes[size]} font-bold text-cyan-600 transition-all duration-300 group-hover:scale-105`}>
+      <div className={`${textSizes[size]} font-bold text-cyan-400 font-mono transition-all duration-300 group-hover:scale-105`}>
         D_ARENA
       </div>
     </div>
