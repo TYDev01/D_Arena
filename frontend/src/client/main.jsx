@@ -1,5 +1,3 @@
-import "./index.css";
-
 import React from "react";
 import ReactDOM from "react-dom/client";
 import {
@@ -13,12 +11,15 @@ import { loginAction } from "./routes/loginAction";
 import ErrorPage from "./error-page";
 import Browser from "./routes/browser";
 import App from "./App";
+import "./index.css";
+
+
 
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <LoginPage />,
+    element: <App />,
     errorElement: <ErrorPage />,
     action: loginAction,
     loader: async () => {

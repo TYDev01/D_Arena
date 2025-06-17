@@ -9,6 +9,8 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.1.10",
+    "@tailwindcss/vite": "^4.1.10",
     "bcrypt": "^5.1.1",
     "compression": "^1.7.4",
     "cookie-session": "^2.1.0",
@@ -21,6 +23,7 @@
     "react-router-dom": "^6.26.2",
     "socket.io": "^4.8.0",
     "socket.io-client": "^4.8.1",
+    "tailwindcss": "^4.1.10",
     "vite-express": "*"
   },
   "devDependencies": {
