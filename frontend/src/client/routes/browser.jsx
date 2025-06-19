@@ -2,13 +2,13 @@ import { Form, Outlet, useLoaderData, useNavigate } from "react-router-dom"
 import { useEffect } from "react";
 import { useState } from "react";
 import LogoutButton from "../LogoutButton";
-import Game from "./game";
+import Game from "./game_old.jsx";
 import GameBoard from "./gameboard";
 import Navbar from '../Navbar';
 import IosSpinner from '../assets/widgets/IosSpinner'
-import Leaderboard from "./leaderboard";
 import { Board, Token } from "../../shared/GameModel";
 import './modal.css';
+import './browser.css'
 
 import socket from '../../shared/socket'
 
@@ -22,8 +22,8 @@ export default function Browser() {
     const [account, setAccount] = useState(null);
 
     const [gameCode, setGameCode] = useState("");
-    const [gameStarted, setGameStarted] = useState(false);
-    const [gameJoined, setGameJoined] = useState(false);
+    const [gameStarted, setGameStarted] = useState(true);
+    const [gameJoined, setGameJoined] = useState(true);
     const [gameOverReason, setGameOverReason] = useState("");
     const [board, setBoard] = useState(new Board());
     const [player, setPlayer] = useState("");
@@ -133,19 +133,6 @@ export default function Browser() {
         
         navigate("/browser");
     }
-
-    // useEffect(() => {
-    //     const storedUsername = localStorage.getItem("username");
-
-    //     if (!storedUsername) {
-    //         // If no username, redirect to login
-    //         navigate("/");
-    //         setAccount('');
-    //     } else {
-    //         // console.log('Stored Username:', sredUsername);
-    //         setUsername(storedUsername);
-    //     }
-    // }, [navigate]);
 
     useEffect(() => {
         socket.on("gameJoined", (gameCode) => {

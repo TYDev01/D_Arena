@@ -13,8 +13,8 @@ import Browser from "./routes/browser";
 import App from "./App";
 import "./index.css";
 
-
-
+import CreateGameModal from "./routes/create-join/CreateGameModal";
+import JoinGameModal from "./routes/create-join/JoinGameModal";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +22,12 @@ const router = createBrowserRouter([
     element: <App />,
     errorElement: <ErrorPage />,
     action: loginAction,
+    children: [
+      // { index: true, element: <App /> },
+      { path: "create-game", element: <CreateGameModal /> }, // Modal-style route
+      { path: "join-game", element: <JoinGameModal /> },     // Modal-style route
+      { path: "join-game/:id", element: <JoinGameModal /> }, // Deep link with ID
+    ],
     loader: async () => {
       return null;
     }

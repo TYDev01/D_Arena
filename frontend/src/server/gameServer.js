@@ -7,13 +7,20 @@ import {
   makeMove,
 } from "../shared/GameController.js";
 import { Token, Board } from "../shared/GameModel.js";
-import { joinGameCon, createGameCon, declareDrawCon, triggerTimeoutRefundCon, declareWinnerCon } from "../contract/interact.js";
+import {
+  joinGameCon,
+  createGameCon,
+  declareDrawCon,
+  triggerTimeoutRefundCon,
+  declareWinnerCon,
+} from "../contract/interact.js";
 
 function joinGame(gameCode, socket, username, games, io) {
-  if(!(username || gameCode) || username.trim() === '' ) return socket.emit("gameJoinError", gameCode, "Incomplete input");
-  
+  if (!(username || gameCode) || username.trim() === ("" || undefined))
+    return socket.emit("gameJoinError", gameCode, "Incomplete input");
+
   socket.username = username;
-  console.log('Joining Game:',gameCode, 'username:',username);
+  console.log("Joining Game:", gameCode, "username:", username);
 
   if (!games[gameCode]) {
     console.log("Game does not exist", gameCode);
@@ -22,12 +29,7 @@ function joinGame(gameCode, socket, username, games, io) {
   }
   // if less than two players, join game
   if (games[gameCode].players.length < games[gameCode].maxPlayers) {
-    console.log(
-      "player0:",
-      username,
-      " joining game:",
-      gameCode
-    );
+    console.log("player0:", username, " joining game:", gameCode);
     if (games[gameCode].players[0] === username) {
       console.log("already in game");
       socket.emit("alreadyInGame");
@@ -70,7 +72,8 @@ export default function ioHandler(io) {
 
     // Game Joining
     socket.on("createGame", (username, stakeAmt) => {
-      let gameCode = '#CHECKERS-' + Math.round(Math.random() * 99998 + 1).toString();
+      let gameCode =
+        "#CHECKERS-" + Math.round(Math.random() * 99998 + 1).toString();
       console.log(
         "Creating game request from id",
         socket.id,
@@ -78,7 +81,7 @@ export default function ioHandler(io) {
         gameCode,
         " username ",
         username,
-        'stakeAmt ',
+        "stakeAmt ",
         stakeAmt
       );
       socket.username = username;
@@ -90,51 +93,56 @@ export default function ioHandler(io) {
         );
         return;
       }
-      
+
       // Create the game
       games[gameCode] = {
         players: [],
-        playersAddr: {},
+        playersData: {},
         maxPlayers: 2,
         board: new Board(),
         sockets: [],
       };
 
-      
-      socket.emit('sendGameData', gameCode,stakeAmt);
+      socket.emit("sendGameData", gameCode, stakeAmt, username);
       // joinGame(gameCode, socket, username, games, io);
     });
 
-    socket.on('verifyGameCode', (gameCode) => {
-      console.log('Verifying Code:', gameCode)
-      if(games[gameCode]){
-        socket.emit('validGameCode', gameCode, true);
+    socket.on("verifyGameCode", (gameCode) => {
+      console.log("Verifying Code:", gameCode);
+      if (games[gameCode]) {
+        socket.emit("validGameCode", gameCode, true);
       } else {
-        socket.emit('validGameCode', gameCode, false);
+        socket.emit("validGameCode", gameCode, false);
       }
     });
 
     socket.on("joinGame", (gameCode, username, stakeAmt, addr) => {
-      if(!(gameCode || username || stakeAmt || addr)) return console.log('Send complete data')
+      if (!(gameCode && username && stakeAmt && addr))
+        return console.log("Send complete data");
       console.log("got join game request", username, gameCode);
       if (gameCode == 69420 && !games[gameCode]) {
         games[gameCode] = {
           players: [],
-          playersAddr: {},
+          playersData: {},
           maxPlayers: 2,
           board: new Board(69420),
         };
-        games[gameCode].playersAddr[username] = addr;
       }
+
+      games[gameCode].playersData[username] = { addr, stake: stakeAmt };
+
       joinGame(gameCode, socket, username, games, io);
     });
 
-    socket.on('getOpp', (gameCode, player) => {
-      console.log(gameCode, player)
+    socket.on("getOpp", (gameCode) => {
+      console.log(games[gameCode]);
+
       const players = games[gameCode].players;
       const opp = players[0];
-      console.log('player:', player, 'opp:', opp);
-      socket.emit('opponent', opp)
+      const oppStake = games[gameCode].playersData[opp].stake;
+
+      console.log("players:", players, "oppStake:", oppStake, "opp:", opp);
+      socket.emit("opponent", opp, oppStake);
     });
 
     // Rebrodcast count update to relevant sockets (except the one it came from)
