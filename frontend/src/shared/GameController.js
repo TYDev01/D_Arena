@@ -51,6 +51,7 @@ export const makeMove = function (board, token, newPosition) {
         if (target) {
           if (target.color !== token.color && !hasCaptured) {
             board.boardState[positionToIndex(currentY, currentX)] = null;
+            board.captureCount[board.currentPlayer] += 1;
             hasCaptured = true;
             captured = true;
           } else {
@@ -69,6 +70,7 @@ export const makeMove = function (board, token, newPosition) {
       const capturedToken = tokenAt(board, capY, capX);
       if (capturedToken && capturedToken.color !== token.color) {
         board.boardState[positionToIndex(capY, capX)] = null;
+        board.captureCount[board.currentPlayer] += 1;
         captured = true;
       }
     }
@@ -102,6 +104,25 @@ export const makeMove = function (board, token, newPosition) {
   //     return board;
   //   }
   // }
+
+  // let finalBoard = board;
+  // if (captured) {
+  //   // console.log('captured:', captured)
+  //   finalBoard = board.copy();
+  //   if (!finalBoard.captureCount) {
+  //     finalBoard.captureCount = { r: 0, b: 0 };
+  //   }
+  //   finalBoard.captureCount[board.currentPlayer] += 1;
+  //   console.log(
+  //     "currentPlayer:",
+  //     board.currentPlayer,
+  //     "captureCount:",
+  //     finalBoard.captureCount
+  //   );
+  // }
+
+  // finalBoard.iterateTurn();
+  // return finalBoard;
 
   board.iterateTurn();
   return board;

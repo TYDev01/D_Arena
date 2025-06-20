@@ -55,10 +55,10 @@ export default function JoinGameModal({wallet}) {
 
   useEffect(() => {
     socket.on('opponent', (opp, oppStake) => {
-      console.log("Opp details:", opp, oppStake);
+      // console.log("Opp details:", opp, oppStake);
       const updateGameInfo = (opp, oppStake) => {
         setGameInfo({ stake: oppStake, host: opp });
-        console.log("gameInfo:", gameInfo)
+        // console.log("gameInfo:", gameInfo)
       }
       updateGameInfo(opp, oppStake);
       

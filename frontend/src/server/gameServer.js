@@ -117,8 +117,7 @@ export default function ioHandler(io) {
     });
 
     socket.on("joinGame", (gameCode, username, stakeAmt, addr) => {
-      if (!(gameCode && username && stakeAmt && addr))
-        return console.log("Send complete data");
+      if ( !(gameCode && username && stakeAmt && addr) )  return console.log("Send complete data");
       console.log("got join game request", username, gameCode);
       if (gameCode == 69420 && !games[gameCode]) {
         games[gameCode] = {
@@ -143,6 +142,11 @@ export default function ioHandler(io) {
 
       console.log("players:", players, "oppStake:", oppStake, "opp:", opp);
       socket.emit("opponent", opp, oppStake);
+    });
+
+    socket.on("getTotalStake", (gameCode) => {
+      let total = 0;
+      
     });
 
     // Rebrodcast count update to relevant sockets (except the one it came from)
@@ -209,7 +213,8 @@ export default function ioHandler(io) {
         "board",
         games[gameCode].board.boardState,
         games[gameCode].board.currentPlayer,
-        games[gameCode].board.onlyMove
+        games[gameCode].board.onlyMove,
+        games[gameCode].board.captureCount
       );
 
       if (games[gameCode].board.winner) {

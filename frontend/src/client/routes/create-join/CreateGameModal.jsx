@@ -18,7 +18,7 @@ export default function CreateGameModal({ wallet, username, setUsername, stakeAm
 
         setIsCreating(true);
         socket.emit("createGame", username, stakeAmt);
-        console.log('createGameEmit localUsername:', username)
+        // console.log('createGameEmit localUsername:', username)
     }
     const createGame = (code, stake, username) => {
 
@@ -27,7 +27,7 @@ export default function CreateGameModal({ wallet, username, setUsername, stakeAm
 
             // if (!response) return console.error('Error while processing')
 
-            console.log('createGame localUsername:', username)
+            // console.log('createGame localUsername:', username)
             socket.emit("joinGame", code, username, stake, wallet);
         } catch (err) {
             console.error(err);
@@ -37,7 +37,7 @@ export default function CreateGameModal({ wallet, username, setUsername, stakeAm
 
             setGameCreated(true)
             setIsCreating(false);
-            console.log('Game Created!');
+            // console.log('Game Created!');
         }
     }
 
@@ -55,7 +55,7 @@ export default function CreateGameModal({ wallet, username, setUsername, stakeAm
                 setUsername(username);
                 setGameCode(code);
                 setStakeAmt(stake);
-                console.log("gameCode:", code, "stakeAmt", stake);
+                // console.log("gameCode:", code, "stakeAmt", stake);
             }
 
             updateData(code, stake);

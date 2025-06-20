@@ -2,11 +2,6 @@
 
 import { allPlayerMoves } from "./GameController.js";
 
-// import darkMonarch from '../client/assets/pieces/dark_monarch.png';
-// import darkPiece from '../client/assets/pieces/dark_piece.png';
-// import lightMonarch from '../client/assets/pieces/light_monarch.png';
-// import lightPiece from '../client/assets/pieces/light_piece.png';
-
 // Tokens store their own position, title, and color
 export class Token {
   index;
@@ -53,6 +48,7 @@ export class Board {
   hasCapture;
   captureMoves;
   noProgressCounter;
+  captureCount;
 
   constructor(gameCode) {
     this.boardState = [];
@@ -64,6 +60,7 @@ export class Board {
     this.hasCapture = false;
     this.captureMoves = [];
     this.noProgressCounter = 0;
+    this.captureCount = {r:0, b:0};
     if (gameCode && gameCode == 69420) this.winBoard();
     else this.resetBoard();
   }
@@ -89,12 +86,6 @@ export class Board {
       } else if (i >= 20) {
         this.boardState.push(blackToken.softCopy(i));
       }
-      // else if (i == 16){
-      //     this.boardState.push(new Token(16, true, "b"))
-      // }
-      // else if (i == 17){
-      //     this.boardState.push(new Token(17, true, "b"))
-      // }
       else {
         this.boardState.push(null);
       }

@@ -12,6 +12,14 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
         board.selected = selected;
     }, [selected])
 
+    // useEffect(() => {
+    //     setCaptureCount(board.captureCount)
+    //     console.log(board.captureCount)
+    // }, [board])
+    // useEffect(() => {
+    //     setCaptureCount(board.captureCount);
+    // }, [board.captureCount?.r, board.captureCount?.b]);
+
     useEffect(() => {
         if (!board.winner) return;
 
@@ -36,8 +44,6 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
         const clickedToken = tokenAt(board, row, col);
         const isPlayerTurn = board.currentPlayer === player;
         const isOwnToken = clickedToken?.color === player;
-
-        if (clickedToken) console.log('clickedToken:', clickedToken);
         // console.log(board);
 
         // Block if it's not this player's turn

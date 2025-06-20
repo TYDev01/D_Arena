@@ -20,13 +20,22 @@ export default function Game() {
     const [player, setPlayer] = useState("");
     const [selected, setSelected] = useState({});
 
+    const [captureCount, setCaptureCount] = useState(0);
+
     const { id } = useParams();
     const location = useLocation();
     const role = location.state?.role;
 
+    // console.log("Game Code:", id);
+    // console.log("Role:", role);
 
-    console.log("Game Code:", id);
-    console.log("Role:", role);
+    useEffect( () => {
+        socket.emit('getTotalStake', id);
+
+        return () => {
+            socket.off('getTotalStake');
+        }
+    }, [])
 
     useEffect(() => {
         if (id) setGameCode(id);
@@ -34,24 +43,15 @@ export default function Game() {
     }, [id, role]);
 
     useEffect(() => {
+        socket.on('setTotalStake', (totalStake) => {
+
+        });
         socket.on("gameJoined", (gameCode) => {
             console.log('game.jsx')
             setGameJoined(true);
             setGameCode(gameCode);
             setBoard(new Board(gameCode));
         });
-
-
-        // socket.on("gameStarted", (player) => {
-        //     // console.log("Game started! I am player ", player);
-        //     setPlayer(player);
-        //     setGameStarted(true);
-        // })
-
-        // socket.on("gameJoinError", (gameCode, reason) => {
-        //     alert(`Could not join game ${gameCode}. ${reason}`);
-
-        // });
 
         socket.on("alreadyInGame", () => {
             alert("You are already in this game!");
@@ -61,7 +61,7 @@ export default function Game() {
             setGameOverReason(reason);
         });
 
-        socket.on("board", (boardState, currentPlayer, onlyMoveData) => {
+        socket.on("board", (boardState, currentPlayer, onlyMoveData, captCount) => {
             // 1. Rebuild board state with new tokens
             const newBoardState = boardState.map(token =>
                 token ? new Token(token.index, token.isMonarch, token.color) : null
@@ -86,6 +86,7 @@ export default function Game() {
             }
 
             setBoard(newBoard);
+            setCaptureCount(captCount)
         });
 
         return () => {
@@ -160,7 +161,7 @@ export default function Game() {
                         {!gameOverReason && (
                             <div className="rounded-lg border bg-card text-card-foreground shadow-sm bg-gray-900/50 border-gray-700">
                                 <div className="p-4 text-center">
-                                    <div className="text-sm text-gray-400 mb-2">CURRENT TURN</div>
+                                    <div className="text-sm text-gray-400 mb-2">{player === board.currentPlayer ? "YOUR TURN" : "Waiting for opponent..."}</div>
                                     <div className="flex items-center justify-center space-x-2">
                                         {/* <div
                                             className={`w-6 h-6 rounded-full ${currentPlayer === "red" ? "bg-red-500" : "bg-gray-800 border border-gray-600"
@@ -200,7 +201,7 @@ export default function Game() {
                                             <span className="text-sm">Red</span>
                                         </div>
                                         <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-primary/80 bg-red-500/20 text-red-400">
-                                            0
+                                            {captureCount?.r || 0}
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center">
@@ -209,7 +210,7 @@ export default function Game() {
                                             <span className="text-sm">Black</span>
                                         </div>
                                         <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-primary/80 bg-gray-500/20 text-gray-400">
-                                            0
+                                            {captureCount?.b || 0}
                                         </div>
                                     </div>
                                 </div>
