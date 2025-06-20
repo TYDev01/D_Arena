@@ -2,6 +2,11 @@
 
 import { allPlayerMoves } from "./GameController.js";
 
+// import darkMonarch from '../client/assets/pieces/dark_monarch.png';
+// import darkPiece from '../client/assets/pieces/dark_piece.png';
+// import lightMonarch from '../client/assets/pieces/light_monarch.png';
+// import lightPiece from '../client/assets/pieces/light_piece.png';
+
 // Tokens store their own position, title, and color
 export class Token {
   index;
@@ -28,9 +33,9 @@ export class Token {
 
   imgSource = function () {
     if (this.color == "b") {
-      return this.isMonarch ? "dark_monarch.png" : "dark_piece.png";
+      return this.isMonarch ? "dark_monarch.svg" : "dark_piece.svg";
     } else {
-      return this.isMonarch ? "light_monarch.png" : "light_piece.png";
+      return this.isMonarch ? "light_monarch.svg" : "light_piece.svg";
     }
   };
 }

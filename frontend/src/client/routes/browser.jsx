@@ -236,14 +236,14 @@ export default function Browser() {
                 {gameOverReason ?
                     <>
                         <h1>{player !== "s" ? gameOverReason : "Game over"}</h1>
-                        <button className='btn-trans' onClick={backToBrowser}>Back to browser</button>
+                        <button className='btn btn-trans' onClick={backToBrowser}>Back to browser</button>
                     </> :
                     !gameJoined ?
                         <div id='welcome'>
                             <h1>Welcome to D_Arena</h1>
 
                             <button
-                                className='btn-trans'
+                                className='btn btn-trans'
                                 onClick={() => {
 
                                     openModal({
@@ -268,7 +268,7 @@ export default function Browser() {
                                         value={modalContent.gameCode}
                                         onChange={(e) => setModalContent(prev => ({ ...prev, gameCode: e.target.value }))}
                                     />
-                                    <button className='btn-trans'
+                                    <button className='btn btn-trans'
                                         onClick={e => handleJoinGame()}
                                     >Join</button>
                                 </div>
@@ -300,7 +300,7 @@ export default function Browser() {
                                     value={modalContent.stakeAmt}
                                     onChange={(e) => setModalContent(prev => ({ ...prev, stakeAmt: e.target.value }))}
                                 />
-                                <button className='btn-blue' onClick={(e) => {
+                                <button className='btn btn-blue' onClick={(e) => {
                                     e.preventDefault();
                                     handleSubmit();
                                 }}

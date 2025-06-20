@@ -47,8 +47,8 @@ function joinGame(gameCode, socket, username, games, io) {
     if (games[gameCode].players.length == games[gameCode].maxPlayers) {
       console.log("Starting game", gameCode);
       // Tell the other player they are red
-      socket.to(gameCode).emit("gameStarted", "r");
-      socket.emit("gameStarted", "b");
+      socket.to(gameCode).emit("gameStarted", "r", gameCode);
+      socket.emit("gameStarted", "b", gameCode);
       // io.to(gameCode).emit("board", games[gameCode].board.boardState, games[gameCode].board.currentPlayer, games[gameCode].board.onlyMove);
     }
   } else {

@@ -41,11 +41,13 @@ export default function CreateGameModal({ wallet, username, setUsername, stakeAm
         }
     }
 
-    const startGame = () => { }
-
     const copyLink = () => {
         navigator.clipboard.writeText(inviteLink)
     }
+
+    useEffect(() => {
+        if (!wallet) return navigate('/')
+    }, [])
 
     useEffect(() => {
         socket.on('sendGameData', (code, stake, username) => {

@@ -49,7 +49,9 @@ export default function JoinGameModal({wallet}) {
     }
   }
 
-  // const showDetails
+  useEffect( ()=> {
+    if(!wallet) return navigate('/')
+  }, [])
 
   useEffect(() => {
     socket.on('opponent', (opp, oppStake) => {

@@ -21,6 +21,11 @@ import socket from '../shared/socket'
 
 const App = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state;
+
+  // This handles "real" routes and modal routes
+  const isModal = state?.modal;
 
   const [username, setUsername] = useState('');
   const [wallet, setWallet] = useState('');
@@ -28,11 +33,6 @@ const App = () => {
   const [stakeAmt, setStakeAmt] = useState(0);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
-  const location = useLocation();
-  const state = location.state;
-
-  // This handles "real" routes and modal routes
-  const isModal = state?.modal;
 
   const handleConnect = async () => {
     try {
@@ -57,10 +57,17 @@ const App = () => {
   }, [setWallet]);
 
   useEffect(() => {
-    socket.on('gameStarted', (player) => {
-      navigate('/browser');
-    })
-  },[socket]);
+    socket.on('gameStarted', (player, gameCode) => {
+      navigate(`/game/${encodeURIComponent(gameCode)}`, { state: { role: player } });
+    });
+
+    socket.on("gameJoinError", (gameCode, reason) => {
+      alert(`Could not join game ${gameCode}. ${reason}`);
+
+    });
+
+    return () => socket.off('gameStarted');
+  }, [socket]);
 
   return (
     <>
@@ -80,7 +87,7 @@ const App = () => {
           {/* Navbar */}
           <header className="flex items-center justify-between mb-16">
             <Logo size="responsive" />
-            <ConnectBtn wallet={wallet} handleClick={handleConnect} />
+            {location.pathname === '/' ? <div></div> : <ConnectBtn wallet={wallet} handleClick={handleConnect} />}
           </header>
 
 
@@ -166,7 +173,7 @@ const App = () => {
       {wallet && isModal && location.pathname === "/join-game"
         &&
         <JoinGameModal wallet={wallet}
-          gameCode={gameCode} setGameCode={setGameCode} 
+          gameCode={gameCode} setGameCode={setGameCode}
         />}
     </>
   );

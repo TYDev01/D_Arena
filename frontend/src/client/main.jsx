@@ -10,6 +10,7 @@ import { LoginPage } from "./routes/login"
 import { loginAction } from "./routes/loginAction";
 import ErrorPage from "./error-page";
 import Browser from "./routes/browser";
+import Game from './routes/game';
 import App from "./App";
 import "./index.css";
 
@@ -42,6 +43,13 @@ const router = createBrowserRouter([
         return redirect('/')
       }
       return {io: io()};
+    },
+  },
+  {
+    path: "/game/:id",
+    element: <Game />,
+    loader: async () => {
+      return null;
     },
   },
 ]);

@@ -29,7 +29,6 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
 
     useEffect(() => {
         setPlayerTurn(board.currentPlayer);
-        // console.log('currentPlayer:',board.currentPlayer, 'player', player);
     }, [board.currentPlayer]);
 
     const clickSquare = function (row, col) {
@@ -38,16 +37,16 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
         const isPlayerTurn = board.currentPlayer === player;
         const isOwnToken = clickedToken?.color === player;
 
-        if(clickedToken) console.log('clickedToken:', clickedToken);
+        if (clickedToken) console.log('clickedToken:', clickedToken);
         // console.log(board);
 
-        // 1. Block if it's not this player's turn
+        // Block if it's not this player's turn
         if (!isPlayerTurn) {
             setSelected({});
             return;
         }
 
-        // 2. Handle token selection
+        // Handle token selection
         if (isOwnToken) {
             // If there's a restricted move (onlyMove), enforce it
             if (board.onlyMove && board.onlyMove !== clickedToken) {
@@ -61,7 +60,7 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
             return;
         }
 
-        // 3. Handle move attempt
+        // Handle move attempt
         if (selected?.row != null && selected?.col != null) {
             const fromToken = tokenAt(board, selected.row, selected.col);
 
@@ -74,19 +73,13 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
                     newRow: row,
                     newCol: col,
                 });
-                // console.table(board.boardState.map(t => t ? `${t.color[0]}${t.index}` : null));
-                // console.log({
-                //     oldRow: selected.row,
-                //     oldCol: selected.col,
-                //     newRow: row,
-                //     newCol: col,
-                // });
+
                 setSelected({});
                 return;
             }
         }
 
-        // 4. Invalid click or empty space
+        // Invalid click or empty space
         setSelected({});
     };
 
@@ -95,19 +88,19 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
         // dark purple #460075
         // green #008844
         if (row === selected?.row && col === selected?.col) {
-            return "teal";
+            return "#131922";
         }
         if (isLegalMove(board, selected, [row, col])) {
-            return "#008844";
+            return "#29528b";
         }
         const colOffset = row % 2;
         if ((col + colOffset) % 2 == 0) {
             // console.log("Setting color to purple for square:", row, col);
-            return "#9066b0";
+            return "#1f2937";
         }
         else {
             // console.log("Setting color to white for square:", row, col);
-            return "#F1F1F1";
+            return "#4b5563";
         }
     }
 
@@ -116,30 +109,32 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
     // draw tokens
     return (
         <>
-            <div id="game" className={rotateClass}>
-                {
-                    [...Array(8)].map((gridRow, rowIndex) => {
-                        return <div className="row" key={"row:" + rowIndex} style={{}}>
-                            {
-                                [...Array(8)].map((gridCell, colIndex) => {
-                                    return <button className="square"
-                                        key={"row:" + rowIndex + ",col:" + colIndex}
-                                        onClick={() => clickSquare(rowIndex, colIndex)}
-                                        style={{
-                                            backgroundColor: squareColor(rowIndex, colIndex),
-                                        }}>
-                                        {tokenAt(board, rowIndex, colIndex) ?
-                                            <img className={"square" + " " + rotateClass}
-                                                src={tokenAt(board, rowIndex, colIndex).imgSource()} /> : null}
-                                    </button>
-                                })
-                            }
-                        </div>
-                    })
-                }
+            <div id="game" className={`${rotateClass}`}>
+                <div>
+                    {
+                        [...Array(8)].map((gridRow, rowIndex) => {
+                            return <div className="row" key={"row:" + rowIndex} style={{}}>
+                                {
+                                    [...Array(8)].map((gridCell, colIndex) => {
+                                        return <button className="square"
+                                            key={"row:" + rowIndex + ",col:" + colIndex}
+                                            onClick={() => clickSquare(rowIndex, colIndex)}
+                                            style={{
+                                                backgroundColor: squareColor(rowIndex, colIndex),
+                                            }}>
+                                            {tokenAt(board, rowIndex, colIndex) ?
+                                                <img className={"square" + " " + rotateClass}
+                                                    src={`/pieces/${tokenAt(board, rowIndex, colIndex).imgSource()}`} /> : null}
+                                        </button>
+                                    })
+                                }
+                            </div>
+                        })
+                    }
+                </div>
             </div>
-            <p>{player === "s" ? "Spectator" : player === playerTurn ? "Your Turn" : "Waiting for opponent..."}</p>
-            <p>You are {player === "s" ? "Spectator" : player === "r" ? "Red" : "Black"}</p>
+            {/* <p>{player === "s" ? "Spectator" : player === playerTurn ? "Your Turn" : "Waiting for opponent..."}</p> */}
+            {/* <p>You are {player === "s" ? "Spectator" : player === "r" ? "Red" : "Black"}</p> */}
         </>
     )
 }
