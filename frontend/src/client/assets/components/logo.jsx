@@ -6,8 +6,8 @@ export function Logo({ size = "lg" }) {
     : {
         sm: "w-6 h-6",
         md: "w-8 h-8",
-        lg: "w-12 h-12",
-        xl: "w-16 h-16",
+        lg: "w-10 h-10",
+        xl: "w-15 h-15",
       }[size];
 
   const textSizes = isResponsive

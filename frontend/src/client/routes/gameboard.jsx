@@ -12,14 +12,6 @@ export default function GameBoard({ board, socket, player, setBoard, selected, s
         board.selected = selected;
     }, [selected])
 
-    // useEffect(() => {
-    //     setCaptureCount(board.captureCount)
-    //     console.log(board.captureCount)
-    // }, [board])
-    // useEffect(() => {
-    //     setCaptureCount(board.captureCount);
-    // }, [board.captureCount?.r, board.captureCount?.b]);
-
     useEffect(() => {
         if (!board.winner) return;
 

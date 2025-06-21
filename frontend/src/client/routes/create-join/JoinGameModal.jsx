@@ -69,7 +69,6 @@ export default function JoinGameModal({wallet}) {
     socket.on('validGameCode', (valCode, status) => {
       // console.log('validGameCode:', valCode, 'status:', status);
       if (!status) return alert('Invalid Game code!');
-      console.log(valCode)
       socket.emit('getOpp', valCode);
     });
 

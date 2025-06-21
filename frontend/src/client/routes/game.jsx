@@ -20,31 +20,36 @@ export default function Game() {
     const [player, setPlayer] = useState("");
     const [selected, setSelected] = useState({});
 
+    const [totalStake, setTotalStake] = useState(0)
     const [captureCount, setCaptureCount] = useState(0);
 
     const { id } = useParams();
     const location = useLocation();
     const role = location.state?.role;
 
-    // console.log("Game Code:", id);
-    // console.log("Role:", role);
+    useEffect(() => {
+        if (id) setGameCode(id);
+        if (role) setPlayer(role);
+        // console.log("id:", id, "gameCode:", gameCode);
 
-    useEffect( () => {
+        // socket.emit('getTotalStake', id);
+
+        // return () => {
+        //     socket.off('getTotalStake');
+        // }
+    }, [id, role]);
+
+    useEffect(() => {
         socket.emit('getTotalStake', id);
 
         return () => {
             socket.off('getTotalStake');
         }
-    }, [])
+    }, []);
 
     useEffect(() => {
-        if (id) setGameCode(id);
-        if (role) setPlayer(role);
-    }, [id, role]);
-
-    useEffect(() => {
-        socket.on('setTotalStake', (totalStake) => {
-
+        socket.on('setTotalStake', (total) => {
+            setTotalStake(total);
         });
         socket.on("gameJoined", (gameCode) => {
             console.log('game.jsx')
@@ -90,6 +95,7 @@ export default function Game() {
         });
 
         return () => {
+            socket.off('setTotalStake');
             socket.off('board');
             socket.off('sendGameData')
             socket.off('opponent');
@@ -133,8 +139,8 @@ export default function Game() {
                     <div className="text-center">
                         <Logo size="sm" className="flex items-center space-x-3 group" />
                         {gameCode && <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-primary/80 bg-cyan-500/20 text-cyan-400 border-cyan-500/30 mt-2">
-                                        {gameCode}
-                                    </div>}
+                            {gameCode}
+                        </div>}
                     </div>
                     <div></div>
                 </div>
@@ -149,8 +155,7 @@ export default function Game() {
                                     <div className="text-sm text-gray-400 mb-1">TOTAL POOL</div>
                                     <div className="text-2xl font-bold text-green-400 flex items-center justify-center">
                                         <Coins className="lucide lucide-coins w-5 h-5 mr-2" />
-                                        {/* {(Number(stakeAmount) * 2).toFixed(1)} */}
-                                        66.6
+                                        {totalStake}
                                     </div>
                                     <div className="text-xs text-gray-400">LSK</div>
                                 </div>
@@ -163,11 +168,11 @@ export default function Game() {
                                 <div className="p-4 text-center">
                                     <div className="text-sm text-gray-400 mb-2">{player === board.currentPlayer ? "YOUR TURN" : "Waiting for opponent..."}</div>
                                     <div className="flex items-center justify-center space-x-2">
-                                        {/* <div
-                                            className={`w-6 h-6 rounded-full ${currentPlayer === "red" ? "bg-red-500" : "bg-gray-800 border border-gray-600"
+                                        <div
+                                            className={`w-6 h-6 rounded-full ${player === "r" ? "bg-red-500" : "bg-gray-800 border border-gray-600"
                                                 }`}
                                         />
-                                        <span className="font-bold">{currentPlayer.toUpperCase()}</span> */}
+                                        <span className="font-bold">{player === "r" ? "RED" : "BLACK"}</span>
                                     </div>
                                 </div>
                             </div>
