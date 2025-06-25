@@ -6,33 +6,40 @@ import {
 } from "lucide-react";
 import socket from '../../../shared/socket'
 
-export default function JoinGameModal({wallet}) {
+export default function JoinGameModal({wallet, username, setUsername, stakeAmt, setStakeAmt}) {
   const navigate = useNavigate();
   const [gameCode, setGameCode] = useState("");
-  const [username, setUsername] = useState('');
+  // const [username, setUsername] = useState('');
   const [isSearching, setIsSearching] = useState(false)
   const [gameFound, setGameFound] = useState(false)
-  const [isJoining, setIsJoining] = useState(false)
+  const [isJoining, setIsJoining] = useState(false);
+  const [invalidInputMsg, setInvalidInputMsg] = useState('')
   const [gameInfo, setGameInfo] = useState({
     stake: "",
     host: "",
   })
 
-  const searchGame = () => {
-    if (!gameId.trim()) return
+  const handleUsernameInput = (e) => {
+    const value = e.target.value;
+    const usernamePattern = /^[a-z_][a-z0-9_]{2,14}$/i;
 
-    setIsSearching(true)
-    setTimeout(() => {
-      setGameFound(true)
-      setIsSearching(false)
-    }, 1500)
-  }
+    setUsername(value);
+    
+    if (value.length >= 3 && !usernamePattern.test(value)) {
+      setInvalidInputMsg("Username must start with a letter or _ and exclude special characters.");
+    } else {
+      setInvalidInputMsg(""); // clear only if valid or in progress
+    }
+  };
 
   const searchGameEmit = () => {
+    if (invalidInputMsg) return setInvalidInputMsg("Enter valid user name");
     setIsSearching(true);
     socket.emit('verifyGameCode', gameCode);
   };
-  const joinGame = async () => {
+
+  const joinGame = async () => {    
+    if (invalidInputMsg) return setInvalidInputMsg("Enter valid user name");
     setIsJoining(true)
 
     try {
@@ -40,12 +47,15 @@ export default function JoinGameModal({wallet}) {
 
       // if (!response) return alert('Error while processing')
 
-      socket.emit("joinGame", gameCode, username, gameInfo.stake, wallet);
+      socket.emit("joinGame", gameCode, username, stakeAmt, wallet);
     } catch (err) {
       console.error(err)
     } finally {
       setIsSearching(false);
       setIsJoining(false);
+
+      localStorage.setItem("username", username);
+      localStorage.setItem("gameCode", gameCode);
     }
   }
 
@@ -192,11 +202,27 @@ export default function JoinGameModal({wallet}) {
                   <input
                     type="text"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={handleUsernameInput}
                     placeholder='John Doe'
                     className="flex h-10 w-full rounded-md border px-3 py-2 mb-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
                                 disabled:opacity-50 bg-gray-800 border-gray-600 text-green-400"
                   />
+                </div>
+                <h5 className="ease-in-out delay-150 w-full text-xs text-red-400">{invalidInputMsg}</h5>
+
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed
+      peer-disabled:opacity-70 text-cyan-400">
+                    STAKE AMOUNT
+                </label>
+                <div className="flex items-center gap-2 mt-2">
+                    <input
+                        type="number"
+                        value={stakeAmt}
+                        onChange={(e) => setStakeAmt(e.target.value)}
+                        className="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
+                  disabled:opacity-50 bg-gray-800 border-gray-600 text-green-400"
+                    />
+                    <span className="text-gray-400">LSK</span>
                 </div>
 
               <button

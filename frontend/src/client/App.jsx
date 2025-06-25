@@ -31,7 +31,8 @@ const App = () => {
   const [wallet, setWallet] = useState('');
   const [gameCode, setGameCode] = useState('');
   const [stakeAmt, setStakeAmt] = useState(0);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);  
+  const [invalidUsernameMsg, setInvalidUsernameMsg] = useState('')
 
 
   const handleConnect = async () => {
@@ -55,6 +56,19 @@ const App = () => {
 
     fetchWallet();
   }, [setWallet]);
+
+  const handleUsernameInput = (e) => {
+    const value = e.target.value;
+    const usernamePattern = /^[a-z_][a-z0-9_]{2,14}$/i;
+
+    setUsername(value);
+    
+    if (value.length >= 3 && !usernamePattern.test(value)) {
+      setInvalidUsernameMsg("Username must start with a letter or _ and exclude special characters.");
+    } else {
+      setInvalidUsernameMsg("");
+    }
+  };
 
   useEffect(() => {
     socket.on('gameStarted', (player, gameCode) => {
@@ -165,15 +179,17 @@ const App = () => {
       {/* Conditionally render modal routes */}
       {wallet && isModal && location.pathname === "/create-game"
         &&
-        <CreateGameModal wallet={wallet} username={username} setUsername={setUsername}
+        <CreateGameModal wallet={wallet} username={username} setUsername={setUsername} 
+          handleUsernameInput={handleUsernameInput} invalidUsernameMsg={invalidUsernameMsg} setInvalidUsernameMsg={setInvalidUsernameMsg}
           stakeAmt={stakeAmt} setStakeAmt={setStakeAmt}
           gameCode={gameCode} setGameCode={setGameCode}
         />}
 
       {wallet && isModal && location.pathname === "/join-game"
         &&
-        <JoinGameModal wallet={wallet}
+        <JoinGameModal wallet={wallet} username={username} setUsername={setUsername} 
           gameCode={gameCode} setGameCode={setGameCode}
+          stakeAmt={stakeAmt} setStakeAmt={setStakeAmt}
         />}
     </>
   );

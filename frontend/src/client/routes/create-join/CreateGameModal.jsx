@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import socket from '../../../shared/socket'
 
-export default function CreateGameModal({ wallet, username, setUsername, stakeAmt, setStakeAmt, gameCode, setGameCode }) {
+export default function CreateGameModal({ wallet, username, setUsername, handleUsernameInput, invalidUsernameMsg, setInvalidUsernameMsg, stakeAmt, setStakeAmt, gameCode, setGameCode }) {
     const [isCreating, setIsCreating] = useState(false);
     const [gameCreated, setGameCreated] = useState(false)
     const [inviteLink, setInviteLink] = useState("")
@@ -37,7 +37,9 @@ export default function CreateGameModal({ wallet, username, setUsername, stakeAm
 
             setGameCreated(true)
             setIsCreating(false);
-            // console.log('Game Created!');
+            
+            localStorage.setItem("username", username);
+            localStorage.setItem("gameCode", code);
         }
     }
 
@@ -214,12 +216,13 @@ export default function CreateGameModal({ wallet, username, setUsername, stakeAm
                                 <input
                                     type="text"
                                     value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
+                                    onChange={handleUsernameInput}
                                     placeholder='John Doe'
                                     className="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
                                 disabled:opacity-50 bg-gray-800 border-gray-600 text-green-400"
                                 />
                             </div>
+                            {invalidUsernameMsg && <h5 className="w-full text-xs text-red-400 mt-2">{invalidUsernameMsg}</h5>}
 
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed
                  peer-disabled:opacity-70 text-cyan-400">

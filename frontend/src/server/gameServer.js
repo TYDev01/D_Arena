@@ -14,11 +14,14 @@ import {
   triggerTimeoutRefundCon,
   declareWinnerCon,
 } from "../contract/interact.js";
+import {notifyDiscord} from "./notifyDiscord.js"
+
+import Decimal from "decimal.js";
 
 function joinGame(gameCode, socket, username, games, io) {
-  if (!(username || gameCode) || username.trim() === ("" || undefined))
+  if (!(username || gameCode) || username.trim() === ("" || undefined)) {
     return socket.emit("gameJoinError", gameCode, "Incomplete input");
-
+  }
   socket.username = username;
   console.log("Joining Game:", gameCode, "username:", username);
 
@@ -49,7 +52,6 @@ function joinGame(gameCode, socket, username, games, io) {
       // Tell the other player they are red
       socket.to(gameCode).emit("gameStarted", "r", gameCode);
       socket.emit("gameStarted", "b", gameCode);
-      // io.to(gameCode).emit("board", games[gameCode].board.boardState, games[gameCode].board.currentPlayer, games[gameCode].board.onlyMove);
     }
   } else {
     // tell user the game is full
@@ -101,9 +103,12 @@ export default function ioHandler(io) {
         maxPlayers: 2,
         board: new Board(),
         sockets: [],
+        disconnected: null,
+        disconnectTimeout: null,
       };
 
       socket.emit("sendGameData", gameCode, stakeAmt, username);
+      notifyDiscord(gameCode, stakeAmt)
       // joinGame(gameCode, socket, username, games, io);
     });
 
@@ -135,7 +140,7 @@ export default function ioHandler(io) {
     });
 
     socket.on("getOpp", (gameCode) => {
-      console.log(games[gameCode]);
+      // console.log(games[gameCode]);
 
       const players = games[gameCode].players;
       const opp = players[0];
@@ -147,20 +152,38 @@ export default function ioHandler(io) {
 
     socket.on("getTotalStake", (gameCode) => {
       console.log("gameCode:", gameCode);
-      
-      let total = 0;
-      const list = games[gameCode].players;
-      const allData = games[gameCode].playersData;
-      // console.log(list);
-      // console.log(allData)
 
-      for (let player of list) {
-        const stake = Number(allData[player]?.stake || 0);
-        total += stake;
+      if (!games[gameCode]?.players) {
+        return socket.emit("gameJoinError", gameCode, "Expired Game");
       }
 
-      console.log(total)
-      socket.emit('setTotalStake', total)
+      let total = new Decimal(0);
+      const list = games[gameCode].players;
+      const allData = games[gameCode].playersData;
+
+      for (let player of list) {
+        const stake = new Decimal(allData[player]?.stake || 0);
+        total = total.plus(stake);
+      }
+
+      // Format if needed (e.g., to 6 decimal places)
+      const formattedTotal = total.toFixed(6); // You can adjust precision here
+
+      socket.emit("setTotalStake", total);
+    });
+
+    socket.on("requestBoardState", (gameCode) => {
+      const game = games[gameCode];
+      if (!game) return;
+
+      const boardState = game.board.boardState.map(
+        (token) => token && token.toObject()
+      );
+      const currentPlayer = game.board.currentPlayer;
+      const onlyMove = game.board.onlyMove;
+      const captCount = game.board.captureCount;
+
+      socket.emit("board", boardState, currentPlayer, onlyMove, captCount);
     });
 
     // Rebrodcast count update to relevant sockets (except the one it came from)
@@ -168,25 +191,114 @@ export default function ioHandler(io) {
       socket.to(gameCode).emit("count", count);
     });
 
-    socket.on("disconnect", () => {
-      let gameCode = socket.gameCode;
-      console.log("Handling disconnect, gameCode", gameCode);
-      if (gameCode && games[gameCode]) {
-        const index = games[gameCode].players.indexOf(socket.username);
-        if (index > -1) {
-          socket.leave(gameCode);
-          io.to(gameCode).emit("gameOver", "Other user disconnected");
-          delete games[gameCode];
-          console.log("Player left game ", gameCode);
-        } else {
-          console.log(
-            "Player id",
-            socket.id,
-            "attempted to leave game they were not in ",
-            gameCode
-          );
-        }
+    socket.on("getPlayersDict", (gameCode) => {
+      if (!games[gameCode]?.players) {
+        return socket.emit("gameJoinError", gameCode, "Invalid game code");
       }
+      const players = games[gameCode].players;
+
+      const usernameDict = {
+        b: players[0],
+        r: players[1],
+      };
+      socket.emit("setUsernameDict", usernameDict);
+    });
+
+    // socket.on("disconnect", () => {
+    //   let gameCode = socket.gameCode;
+    //   console.log("Handling disconnect, gameCode", gameCode);
+    //   if (gameCode && games[gameCode]) {
+    //     const index = games[gameCode].players.indexOf(socket.username);
+    //     if (index > -1) {
+    //       socket.leave(gameCode);
+    //       io.to(gameCode).emit("gameOver", "Other user disconnected");
+    //       delete games[gameCode];
+    //       console.log("Player left game ", gameCode);
+    //     } else {
+    //       console.log(
+    //         "Player id",
+    //         socket.id,
+    //         "attempted to leave game they were not in ",
+    //         gameCode
+    //       );
+    //     }
+    //   }
+    // });
+
+    socket.on("disconnect", () => {
+      const gameCode = socket.gameCode;
+      const username = socket.username;
+
+      if (
+        !gameCode ||
+        games[gameCode] ||
+        !username ||
+        gameCode === "" ||
+        username === ""
+      ) {
+        return socket.emit("gameJoinError", gameCode, "Something went wrong");
+      }
+
+      console.log("Disconnected:", username, gameCode);
+
+      games[gameCode].disconnected = username;
+
+      // Start grace period
+      const timeout = setTimeout(() => {
+        console.log("Grace period expired. Deleting game", gameCode);
+        delete games[gameCode];
+        io.to(gameCode).emit("gameOver", "player did not reconnect in time.");
+      }, 60000);
+
+      games[gameCode].disconnectTimeout = timeout;
+    });
+
+    socket.on("rejoinGame", ({ username, gameCode }) => {
+      console.log("Rejoin request:", username, gameCode);
+
+      const game = games[gameCode];
+      // console.log(game);
+
+      // Check if game exists and username was a participant
+      if (!game || !game.players.includes(username)) {
+        socket.emit(
+          "rejoinFailed",
+          "Game not found or username not part of game."
+        );
+        return;
+      }
+
+      // Reassociate this new socket with the game
+      console.log("disconnectTimeout:", game.disconnectTimeout);
+      clearTimeout(game.disconnectTimeout);
+      socket.username = username;
+      socket.gameCode = gameCode;
+      socket.join(gameCode);
+
+      // Determine player color
+      const color = game.players[0] === username ? "b" : "r";
+      console.log("player:", username, "gameCode:", gameCode, "color:", color);
+
+      // Send game state back to the reconnecting player
+      socket.emit("gameResumed", {
+        gameCode,
+        color,
+        boardState: game.board.boardState,
+        currentPlayer: game.board.currentPlayer,
+        onlyMove: game.board.onlyMove,
+        players: game.players,
+      });
+      console.log(
+        "Details:",
+        gameCode,
+        color,
+        // game.board.boardState,
+        game.board.currentPlayer,
+        game.board.onlyMove,
+        game.players
+      );
+
+      console.log(`Player ${username} resumed game ${gameCode}`);
     });
 
     socket.on("gameboard", () => {
@@ -243,7 +355,7 @@ export default function ioHandler(io) {
             (player) => player !== winner
           );
 
-          declareWinnerCon(gameCode, playersAddr[winner]);
+          declareWinnerCon(gameCode, games[gameCode].playersData[winner].addr);
           socket.emit("gameOver", "You win!");
           socket.to(gameCode).emit("gameOver", "You lose!");
         }

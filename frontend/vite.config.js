@@ -9,4 +9,7 @@ export default defineConfig({
     tailwindcss({
       config: "./tailwind.config.js", // Explicit path to config
     })],
+    server: {
+      historyApiFallback: true,
+  },
 });

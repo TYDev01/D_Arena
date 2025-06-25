@@ -26,6 +26,14 @@ export class Token {
     return newToken;
   };
 
+  toObject() {
+    return {
+      index: this.index,
+      isMonarch: this.isMonarch,
+      color: this.color,
+    };
+  }
+
   imgSource = function () {
     if (this.color == "b") {
       return this.isMonarch ? "dark_monarch.svg" : "dark_piece.svg";
@@ -60,7 +68,7 @@ export class Board {
     this.hasCapture = false;
     this.captureMoves = [];
     this.noProgressCounter = 0;
-    this.captureCount = {r:0, b:0};
+    this.captureCount = { r: 0, b: 0 };
     if (gameCode && gameCode == 69420) this.winBoard();
     else this.resetBoard();
   }
@@ -85,8 +93,7 @@ export class Board {
         this.boardState.push(redToken.softCopy(i));
       } else if (i >= 20) {
         this.boardState.push(blackToken.softCopy(i));
-      }
-      else {
+      } else {
         this.boardState.push(null);
       }
     }
