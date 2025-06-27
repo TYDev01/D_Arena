@@ -5,8 +5,9 @@ import {
   Wallet, Play, Coins, Shield, Zap, Users, ArrowLeft, Copy, Search
 } from "lucide-react";
 import socket from '../../../shared/socket'
+import { joinGameCon, createGameCon, triggerTimeoutRefundCon } from "../../../contract/interact.js";
 
-export default function JoinGameModal({wallet, username, setUsername, stakeAmt, setStakeAmt}) {
+export default function JoinGameModal({ wallet, username, setUsername, stakeAmt, setStakeAmt }) {
   const navigate = useNavigate();
   const [gameCode, setGameCode] = useState("");
   // const [username, setUsername] = useState('');
@@ -24,7 +25,7 @@ export default function JoinGameModal({wallet, username, setUsername, stakeAmt, 
     const usernamePattern = /^[a-z_][a-z0-9_]{2,14}$/i;
 
     setUsername(value);
-    
+
     if (value.length >= 3 && !usernamePattern.test(value)) {
       setInvalidInputMsg("Username must start with a letter or _ and exclude special characters.");
     } else {
@@ -38,29 +39,34 @@ export default function JoinGameModal({wallet, username, setUsername, stakeAmt, 
     socket.emit('verifyGameCode', gameCode);
   };
 
-  const joinGame = async () => {    
-    if (invalidInputMsg) return setInvalidInputMsg("Enter valid user name");
-    setIsJoining(true)
-
-    try {
-      // const response = await joinGameCon(code, stake);
-
-      // if (!response) return alert('Error while processing')
-
-      socket.emit("joinGame", gameCode, username, stakeAmt, wallet);
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsSearching(false);
-      setIsJoining(false);
-
-      localStorage.setItem("username", username);
-      localStorage.setItem("gameCode", gameCode);
-    }
+  const joinGame = async () => {
+  if (!username || username.trim().length < 3 || stakeAmt <= 0) {
+    setInvalidInputMsg("Enter valid details");
+    return;
   }
 
-  useEffect( ()=> {
-    if(!wallet) return navigate('/')
+  setIsJoining(true);
+  console.log("joiningggg!", gameCode, stakeAmt);
+
+  try {
+    await joinGameCon(gameCode, stakeAmt);
+
+    socket.emit("joinGame", gameCode, username, stakeAmt, wallet);
+
+    localStorage.setItem("username", username);
+    localStorage.setItem("gameCode", gameCode);
+  } catch (err) {
+    console.error(err);
+    alert(err.message || "An error occurred while joining the game");
+  } finally {
+    setIsSearching(false);
+    setIsJoining(false);
+  }
+};
+
+
+  useEffect(() => {
+    if (!wallet) return navigate('/')
   }, [])
 
   useEffect(() => {
@@ -71,7 +77,7 @@ export default function JoinGameModal({wallet, username, setUsername, stakeAmt, 
         // console.log("gameInfo:", gameInfo)
       }
       updateGameInfo(opp, oppStake);
-      
+
       setGameFound(true);
       setIsJoining(false);
     });
@@ -128,7 +134,7 @@ export default function JoinGameModal({wallet, username, setUsername, stakeAmt, 
             </div>
             <div className="p-6 pt-0 space-y-6">
               <div>
-                
+
                 <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-cyan-400">
                   GAME CODE
                 </div>
@@ -187,43 +193,43 @@ export default function JoinGameModal({wallet, username, setUsername, stakeAmt, 
                 </div> */}
               </div>
 
-              {isJoining && (
+              {/* {isJoining && (
                 <div className="text-center py-4">
                   <div className="w-8 h-8 mx-auto mb-2 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
                   <p className="text-cyan-400 text-sm">Joining game...</p>
                 </div>
-              )}
+              )} */}
 
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed
                  peer-disabled:opacity-70 text-cyan-400">
-                  USERNAME
-                </label>
-                <div className="flex items-center gap-2 mt-2">
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={handleUsernameInput}
-                    placeholder='John Doe'
-                    className="flex h-10 w-full rounded-md border px-3 py-2 mb-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
+                USERNAME
+              </label>
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="text"
+                  value={username}
+                  onChange={handleUsernameInput}
+                  placeholder='John Doe'
+                  className="flex h-10 w-full rounded-md border px-3 py-2 mb-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
                                 disabled:opacity-50 bg-gray-800 border-gray-600 text-green-400"
-                  />
-                </div>
-                <h5 className="ease-in-out delay-150 w-full text-xs text-red-400">{invalidInputMsg}</h5>
+                />
+              </div>
+              <h5 className="ease-in-out delay-150 w-full text-xs text-red-400">{invalidInputMsg}</h5>
 
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed
+              <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed
       peer-disabled:opacity-70 text-cyan-400">
-                    STAKE AMOUNT
-                </label>
-                <div className="flex items-center gap-2 mt-2">
-                    <input
-                        type="number"
-                        value={stakeAmt}
-                        onChange={(e) => setStakeAmt(e.target.value)}
-                        className="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
+                STAKE AMOUNT
+              </label>
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="number"
+                  value={stakeAmt}
+                  onChange={(e) => setStakeAmt(e.target.value)}
+                  className="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed
                   disabled:opacity-50 bg-gray-800 border-gray-600 text-green-400"
-                    />
-                    <span className="text-gray-400">LSK</span>
-                </div>
+                />
+                <span className="text-gray-400">LSK</span>
+              </div>
 
               <button
                 onClick={joinGame}
@@ -233,8 +239,7 @@ export default function JoinGameModal({wallet, username, setUsername, stakeAmt, 
               >
                 {isJoining ? (
                   <>
-                    <div className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2
-                                    w-4 h-4 mr-2 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 mr-2 border-2 border-black border-t-transparent rounded-full animate-spin" />
                     JOINING...
                   </>
                 ) : (

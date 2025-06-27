@@ -8,7 +8,7 @@ const useGameSession = ({ setGameCode, setPlayer, setBoard, setGameStarted, setG
     const gameCode = localStorage.getItem("gameCode");
 
     if (username && gameCode) {
-      console.log("🌱 Attempting rejoin...");
+      // console.log("🌱 Attempting rejoin...");
       setGameHydrated(true); // Block UI until rejoin finishes
       socket.emit("rejoinGame", { username, gameCode });
     }
@@ -22,7 +22,7 @@ const useGameSession = ({ setGameCode, setPlayer, setBoard, setGameStarted, setG
     }
 
     socket.on("gameResumed", (data) => {
-      console.log("Game resumed:", data);
+      // console.log("Game resumed:", data);
       setGameCode(data.gameCode);
       setPlayer(data.color);
       setBoard(new Board(data.boardState));

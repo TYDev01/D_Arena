@@ -8,10 +8,11 @@ const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/138513410919773392
  *
  * @param {string|number} stake - The player's wallet address.
  * @param {string|number} gameCode - The game code.
+ * @param {string} inviteLink
  */
-export async function notifyDiscord(gameCode, stake) {
+export async function notifyDiscord(gameCode, stake, inviteLink) {
   // Customize your message format here
-  const message = `📢 New game created!\n\n❯❯❯❯ Game Code: \`${gameCode}\`\n❯❯❯❯ Stake: \`${stake}LSK\`\n\🔗 Click here to join: https://example.com/join/${encodeURIComponent(gameCode)}\n\n This is a test`;
+  const message = `📢 New game created!\n\n❯❯❯❯ Game Code: ${gameCode}\n❯❯❯❯ Stake: ${stake} LSK\n\🔗 Click here to join: ${inviteLink}\n\n This is a test`;
 
   try {
     await axios.post(DISCORD_WEBHOOK_URL, {

@@ -4,7 +4,8 @@ import { Logo } from '../../assets/components/logo'
 import {
     Wallet, Play, Coins, Shield, Zap, Users, ArrowLeft, Copy
 } from "lucide-react";
-import socket from '../../../shared/socket'
+import socket from '../../../shared/socket';
+import { joinGameCon, createGameCon, triggerTimeoutRefundCon } from "../../../contract/interact.js";
 
 export default function CreateGameModal({ wallet, username, setUsername, handleUsernameInput, invalidUsernameMsg, setInvalidUsernameMsg, stakeAmt, setStakeAmt, gameCode, setGameCode }) {
     const [isCreating, setIsCreating] = useState(false);
@@ -20,28 +21,28 @@ export default function CreateGameModal({ wallet, username, setUsername, handleU
         socket.emit("createGame", username, stakeAmt);
         // console.log('createGameEmit localUsername:', username)
     }
-    const createGame = (code, stake, username) => {
-
+    const createGame = async (code, stake, username) => {
         try {
-            // const response = await createGameCon(code, stake);
+            await createGameCon(code, stake);
 
-            // if (!response) return console.error('Error while processing')
-
-            // console.log('createGame localUsername:', username)
-            socket.emit("joinGame", code, username, stake, wallet);
-        } catch (err) {
-            console.error(err);
-        } finally {
             const newInviteLink = `${window.location.origin}/join/${encodeURIComponent(code)}`
-            setInviteLink(newInviteLink)
-
-            setGameCreated(true)
+            setInviteLink(newInviteLink);
+            setGameCreated(true);
             setIsCreating(false);
-            
+
+            socket.emit("joinGame", code, username, stake, wallet);
+            socket.emit('notifyDiscord', code, stake, newInviteLink);
+
             localStorage.setItem("username", username);
             localStorage.setItem("gameCode", code);
+        } catch (err) {
+            console.error(err);
+            alert(err.message || "An error occurred while creating the game");
+        } finally {
+            setIsCreating(false);
         }
-    }
+    };
+
 
     const copyLink = () => {
         navigator.clipboard.writeText(inviteLink)

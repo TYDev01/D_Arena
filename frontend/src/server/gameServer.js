@@ -8,13 +8,11 @@ import {
 } from "../shared/GameController.js";
 import { Token, Board } from "../shared/GameModel.js";
 import {
-  joinGameCon,
-  createGameCon,
   declareDrawCon,
   triggerTimeoutRefundCon,
   declareWinnerCon,
-} from "../contract/interact.js";
-import {notifyDiscord} from "./notifyDiscord.js"
+} from "./contractMethods.js";
+import { notifyDiscord } from "./notifyDiscord.js";
 
 import Decimal from "decimal.js";
 
@@ -108,8 +106,12 @@ export default function ioHandler(io) {
       };
 
       socket.emit("sendGameData", gameCode, stakeAmt, username);
-      notifyDiscord(gameCode, stakeAmt)
+      // notifyDiscord(gameCode, stakeAmt)
       // joinGame(gameCode, socket, username, games, io);
+    });
+
+    socket.on("notifyDiscord", (gameCode, stakeAmt, inviteLink) => {
+      notifyDiscord(gameCode, stakeAmt, inviteLink);
     });
 
     socket.on("verifyGameCode", (gameCode) => {
@@ -231,7 +233,7 @@ export default function ioHandler(io) {
 
       if (
         !gameCode ||
-        games[gameCode] ||
+        !games[gameCode] ||
         !username ||
         gameCode === "" ||
         username === ""
@@ -244,10 +246,47 @@ export default function ioHandler(io) {
       games[gameCode].disconnected = username;
 
       // Start grace period
-      const timeout = setTimeout(() => {
-        console.log("Grace period expired. Deleting game", gameCode);
+      // const timeout = setTimeout(() => {
+      //   console.log("Grace period expired. Deleting game", gameCode);
+      //   delete games[gameCode];
+      //   io.to(gameCode).emit("gameOver", "player did not reconnect in time.");
+      // }, 60000);
+
+      const timeout = setTimeout(async () => {
+        const game = games[gameCode];
+        const disconnectedPlayer = username;
+        const remainingPlayer = game.players.find(
+          (p) => p !== disconnectedPlayer
+        );
+
+        if (!remainingPlayer) {
+          console.log("No opponent to declare winner");
+          delete games[gameCode];
+          return;
+        }
+
+        console.log(`Grace period expired. ${disconnectedPlayer} forfeits.`);
+
+        try {
+          await declareWinnerCon(
+            gameCode,
+            game.playersData[remainingPlayer].addr
+          );
+          io.to(gameCode).emit(
+            "gameOver",
+            `Opponent forfeited. You win!`,
+            true
+          );
+        } catch (err) {
+          console.error("Failed to declare winner on-chain:", err);
+          io.to(gameCode).emit(
+            "gameOver",
+            "Forfeit detected, but error on chain declaration.",
+            false
+          );
+        }
+
         delete games[gameCode];
-        io.to(gameCode).emit("gameOver", "player did not reconnect in time.");
       }, 60000);
 
       games[gameCode].disconnectTimeout = timeout;
@@ -348,7 +387,7 @@ export default function ioHandler(io) {
 
         if (result === "draw") {
           declareDrawCon(gameCode);
-          io.to(gameCode).emit("gameOver", "Game Over: It's a draw!");
+          io.to(gameCode).emit("gameOver", "Draw Game!", false);
         } else {
           const winner = socket.username;
           const loser = games[gameCode].players.find(
@@ -356,8 +395,8 @@ export default function ioHandler(io) {
           );
 
           declareWinnerCon(gameCode, games[gameCode].playersData[winner].addr);
-          socket.emit("gameOver", "You win!");
-          socket.to(gameCode).emit("gameOver", "You lose!");
+          socket.emit("gameOver", "You win!", true);
+          socket.to(gameCode).emit("gameOver", "You lose!", false);
         }
 
         delete games[gameCode];

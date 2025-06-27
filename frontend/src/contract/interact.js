@@ -78,7 +78,7 @@ export const createGameCon = async (gameId, stakeInEth) => {
     // console.log("Game created:", tx.hash);
     return {ok: true};
   } catch (err) {
-    throw new Error(err);
+    throw err;
   }
 };
 
@@ -94,7 +94,7 @@ export const joinGameCon = async (gameId, stakeInEth) => {
     // console.log("Joined game:", tx.hash);
     return {ok: true};
   } catch (err) {
-    throw new Error(err);
+    throw err;
   }
 };
 
