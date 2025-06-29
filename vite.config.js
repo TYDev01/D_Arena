@@ -7,7 +7,7 @@ import path from 'path';
 export default defineConfig({
   root: "src/client", // frontend source directory
   build: {
-    outDir: path.resolve("dist"), // build to root/dist
+    outDir: "dist", // build to root/dist
     emptyOutDir: true,
   },
   plugins: [
