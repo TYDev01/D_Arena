@@ -5,9 +5,9 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  root: "src/client", // frontend source directory
+  root: "client", // frontend source directory
   build: {
-    outDir: path.resolve(__dirname, "dist"),
+    outDir: "dist",
     emptyOutDir: true,
   },
   plugins: [
