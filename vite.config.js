@@ -8,7 +8,7 @@ export default defineConfig({
   // root: "client", // frontend source directory
   base: "/",
   build: {
-    outDir: "dist",
+    outDir: "/src/dist",
     emptyOutDir: true,
   },
   plugins: [
