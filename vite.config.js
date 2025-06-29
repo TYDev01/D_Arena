@@ -6,7 +6,7 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   // root: "client", // frontend source directory
-  base: "./",
+  base: "/",
   build: {
     outDir: "./dist",
     emptyOutDir: true,
