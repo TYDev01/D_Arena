@@ -17,7 +17,9 @@ const saltRounds = 10;
 
 app.use(compression());
 app.use(express.json());
-app.use(express.static("src/client/assets"));
+if (process.env.NODE_ENV !== "production") {
+  app.use(express.static("src/client/assets"));
+}
 
 // use express.urlencoded to get data sent by defaut form actions
 // or GET requests
