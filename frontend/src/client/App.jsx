@@ -31,14 +31,16 @@ const App = () => {
   const [wallet, setWallet] = useState('');
   const [gameCode, setGameCode] = useState('');
   const [stakeAmt, setStakeAmt] = useState(0);
-  const [isWalletConnected, setIsWalletConnected] = useState(false);  
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [invalidUsernameMsg, setInvalidUsernameMsg] = useState('')
-
+  const [showConnectBtn, setShowConnectBtn] = useState(false);
 
   const handleConnect = async () => {
+
     try {
       const selectedWallet = await connectWallet();
       setWallet(selectedWallet);
+      if (selectedWallet) setShowConnectBtn(true);
     } catch (err) {
       console.error(err);
     }
@@ -57,12 +59,28 @@ const App = () => {
     fetchWallet();
   }, [setWallet]);
 
+  const handleWalletConnection = () => {
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1" ||
+      window.location.hostname.startsWith("192.168.");
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    const isMetaMaskApp = /MetaMask/i.test(navigator.userAgent);
+
+    if (isMobile && !isMetaMaskApp) {
+      const cleanUrl = window.location.href.replace(/^http(s)?:\/\//, "");
+      window.location.href = `https://metamask.app.link/dapp/${cleanUrl}`;
+    } else {
+      handleConnect(); // Proceed with standard wallet connection
+    }
+  }
+
   const handleUsernameInput = (e) => {
     const value = e.target.value;
     const usernamePattern = /^[a-z_][a-z0-9_]{2,14}$/i;
 
     setUsername(value);
-    
+
     if (value.length >= 3 && !usernamePattern.test(value)) {
       setInvalidUsernameMsg("Username must start with a letter or _ and exclude special characters.");
     } else {
@@ -101,7 +119,10 @@ const App = () => {
           {/* Navbar */}
           <header className="flex items-center justify-between mb-16">
             <Logo size="responsive" />
-            {location.pathname === '/' ? <div></div> : <ConnectBtn wallet={wallet} handleClick={handleConnect} />}
+            {!showConnectBtn ?
+              <div></div> :
+              <ConnectBtn wallet={wallet}
+                handleClick={handleWalletConnection} />}
           </header>
 
 
@@ -140,7 +161,9 @@ const App = () => {
                       </div>
                     </div>
 
-                    <ConnectBtn wallet={wallet} handleClick={handleConnect} />
+                    <ConnectBtn wallet={wallet}
+                      handleClick={handleWalletConnection}
+                    />
 
                     <div className="text-xs text-gray-500 text-center">
                       Supports Metamask only • Secure & encrypted
@@ -179,7 +202,7 @@ const App = () => {
       {/* Conditionally render modal routes */}
       {wallet && isModal && location.pathname === "/create-game"
         &&
-        <CreateGameModal wallet={wallet} username={username} setUsername={setUsername} 
+        <CreateGameModal wallet={wallet} username={username} setUsername={setUsername}
           handleUsernameInput={handleUsernameInput} invalidUsernameMsg={invalidUsernameMsg} setInvalidUsernameMsg={setInvalidUsernameMsg}
           stakeAmt={stakeAmt} setStakeAmt={setStakeAmt}
           gameCode={gameCode} setGameCode={setGameCode}
@@ -187,7 +210,7 @@ const App = () => {
 
       {wallet && isModal && location.pathname === "/join-game"
         &&
-        <JoinGameModal wallet={wallet} username={username} setUsername={setUsername} 
+        <JoinGameModal wallet={wallet} username={username} setUsername={setUsername}
           gameCode={gameCode} setGameCode={setGameCode}
           stakeAmt={stakeAmt} setStakeAmt={setStakeAmt}
         />}

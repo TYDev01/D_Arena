@@ -6,13 +6,13 @@ import { CONTRACT_ADDRESS } from "./contract.js";
 
 
 export const connectWallet = async () => {
-  if (!window.ethereum) {
-    alert("Please install MetaMask!");
-    return null;
-  }
+  // if (!window.ethereum) {
+  //   alert("Please install MetaMask!");
+  //   return null;
+  // }
 
   try {
-    console.log('connect');
+    // console.log('connect');
     await window.ethereum.request({
       method: "wallet_requestPermissions",
       params: [{ eth_accounts: {} }]
