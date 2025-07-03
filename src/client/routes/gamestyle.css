@@ -1,0 +1,48 @@
+#game {
+    border: 1px solid #06b6d44d;
+    background-color: #11182780;
+    border-radius: 5px;
+    padding: 1rem;
+    width:30rem;
+    /* min-width: 20rem; */
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+}
+
+
+.rotate {
+    transform: rotate(180deg);
+}
+
+.row {
+    display: flex;
+    height: calc(100% / 8);
+    width: 100%;
+
+}
+
+.square {
+    border-radius: 0;
+    padding: 0;
+    width: calc(100% / 8);
+    aspect-ratio: 1/1;
+    border:none;
+}
+
+
+
+img.square {
+    position: relative;
+    width: 72%;
+    aspect-ratio: 1/1;
+    margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+    #game{
+        width: 100%;
+    }
+    /* .square{
+        width: calc(100% /10);
+    } */
+}
