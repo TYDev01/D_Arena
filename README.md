@@ -19,10 +19,10 @@ D_Arena. A skill-based gaming platform built on the Lisk network. Focused on acc
 
 ## 🚀 **Deployment**  
 ### **How to Deploy**  
-1. **Prerequisites**:  
+1. **Prerequisites**: 
+   - React,js 
    - Node.js (v18+)  
-   - npm/yarn
-   - Firebase
+   - yarn
 
 2. **Steps**:  
    ```bash
